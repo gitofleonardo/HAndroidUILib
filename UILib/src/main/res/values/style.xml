@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="ScrollPositionIndicator">
+        <attr name="blockColor" format="color|reference"/>
+        <attr name="blockBackground" format="color|reference"/>
+        <attr name="blockWidth" format="dimension"/>
+        <attr name="scrollable" format="boolean"/>
+    </declare-styleable>
+    <declare-styleable name="PageIndicator">
+        <attr name="backgroundDotColor" format="color|reference"/>
+        <attr name="foregroundColor" format="reference|color"/>
+        <attr name="dotSize" format="dimension|reference"/>
+        <attr name="dotRadius" format="dimension"/>
+    </declare-styleable>
+</resources>
