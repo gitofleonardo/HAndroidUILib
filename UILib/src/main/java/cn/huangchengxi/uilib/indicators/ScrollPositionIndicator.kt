@@ -1,4 +1,4 @@
-package cn.huangchengxi.uilib
+package cn.huangchengxi.uilib.indicators
 
 import android.content.Context
 import android.graphics.Canvas
@@ -9,6 +9,7 @@ import android.util.AttributeSet
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
+import cn.huangchengxi.uilib.R
 import cn.huangchengxi.uilib.utils.dp2px
 
 /**
@@ -38,7 +39,7 @@ class ScrollPositionIndicator(context: Context,attrs:AttributeSet?,defStyle:Int)
     private var mPaint=Paint()
     private val mRectF=RectF()
     private val mBackgroundRectF=RectF()
-    private var mListener:OnPercentChangeListener?=null
+    private var mListener: OnPercentChangeListener?=null
 
     var scrollable=true
 
@@ -80,7 +81,7 @@ class ScrollPositionIndicator(context: Context,attrs:AttributeSet?,defStyle:Int)
         get() = blockTop+blockHeight
 
     init {
-        val array=context.obtainStyledAttributes(attrs,R.styleable.ScrollPositionIndicator)
+        val array=context.obtainStyledAttributes(attrs, R.styleable.ScrollPositionIndicator)
         mBlockColor=array.getColor(R.styleable.ScrollPositionIndicator_blockColor,mBlockColor)
         mBackgroundColor=array.getColor(R.styleable.ScrollPositionIndicator_blockBackground,mBackgroundColor)
         scrollable=array.getBoolean(R.styleable.ScrollPositionIndicator_scrollable,true)
@@ -216,7 +217,7 @@ class ScrollPositionIndicator(context: Context,attrs:AttributeSet?,defStyle:Int)
         return false
     }
 
-    fun setOnPercentChangeListener(listener:OnPercentChangeListener){
+    fun setOnPercentChangeListener(listener: OnPercentChangeListener){
         mListener=listener
     }
 
@@ -224,7 +225,7 @@ class ScrollPositionIndicator(context: Context,attrs:AttributeSet?,defStyle:Int)
      * Lamda version
      */
     fun setOnPercentChangeListener(listener:(Float,Float,Boolean)->Unit){
-        mListener=object : OnPercentChangeListener{
+        mListener=object : OnPercentChangeListener {
             override fun onChange(old: Float, new: Float, fromUser: Boolean) {
                 listener.invoke(old,new,fromUser)
             }

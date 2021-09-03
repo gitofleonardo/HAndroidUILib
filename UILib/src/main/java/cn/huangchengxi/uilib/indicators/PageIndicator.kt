@@ -1,4 +1,4 @@
-package cn.huangchengxi.uilib
+package cn.huangchengxi.uilib.indicators
 
 import android.animation.Animator
 import android.animation.ValueAnimator
@@ -9,6 +9,7 @@ import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.View
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
+import cn.huangchengxi.uilib.R
 import cn.huangchengxi.uilib.utils.dp2px
 import kotlin.math.abs
 import kotlin.math.min
@@ -101,19 +102,25 @@ class PageIndicator(context: Context,attrs:AttributeSet?,defStyle:Int,defStyleRe
     /**
      * Scroll state
      */
-    private var mScrollDirection=ScrollDirection.NONE
+    private var mScrollDirection= ScrollDirection.NONE
         get(){
             return if (mFromIndex==mToIndex) ScrollDirection.NONE
             else if (mFromIndex>mToIndex) ScrollDirection.LEFT
             else ScrollDirection.RIGHT
         }
     private var mScrollOffsetAnimator:Animator?=null
-    private var mOnScrollListener:OnScrollListener?=null
+    private var mOnScrollListener: OnScrollListener?=null
 
     init {
-        val arr=context.obtainStyledAttributes(attrs,R.styleable.PageIndicator)
-        backgroundDotColor=arr.getColor(R.styleable.PageIndicator_backgroundDotColor,resources.getColor(R.color.color_page_indicator_default_background))
-        foregroundDotColor=arr.getColor(R.styleable.PageIndicator_foregroundColor,resources.getColor(R.color.color_page_indicator_default_foreground))
+        val arr=context.obtainStyledAttributes(attrs, R.styleable.PageIndicator)
+        backgroundDotColor=arr.getColor(
+            R.styleable.PageIndicator_backgroundDotColor,resources.getColor(
+                R.color.color_page_indicator_default_background
+            ))
+        foregroundDotColor=arr.getColor(
+            R.styleable.PageIndicator_foregroundColor,resources.getColor(
+                R.color.color_page_indicator_default_foreground
+            ))
         dotSize= dp2px(context,arr.getDimension(R.styleable.PageIndicator_dotSize,12.0f))
         radius= dp2px(context,arr.getDimension(R.styleable.PageIndicator_dotRadius,6.0f))
         arr.recycle()
@@ -139,12 +146,14 @@ class PageIndicator(context: Context,attrs:AttributeSet?,defStyle:Int,defStyleRe
         setMeasuredDimension(MeasureSpec.makeMeasureSpec(wid,widthMode),MeasureSpec.makeMeasureSpec(hei,heightMode))
     }
     private fun measureWidth():Int{
+        if (itemCount==0) return 0
         return (dotSize*(itemCount*2-1)).toInt()
     }
     private fun measureHeight():Int{
         return dotSize.toInt()+paddingTop+paddingBottom
     }
     private fun drawBackgroundDots(canvas: Canvas){
+        if (itemCount==0) return
         var startPos=paddingLeft.toFloat()
         for (i in 0 until itemCount){
             canvas.drawRoundRect(startPos,mDrawTop,startPos+dotSize,mDrawBottom,radius,radius,mBackgroundPainter)
@@ -152,12 +161,13 @@ class PageIndicator(context: Context,attrs:AttributeSet?,defStyle:Int,defStyleRe
         }
     }
     private fun drawForegroundIndicator(canvas: Canvas){
+        if (itemCount==0) return
         when (mScrollDirection){
-            ScrollDirection.NONE->{
+            ScrollDirection.NONE ->{
                 val left=calculateLeftOffsetByPosition(position)
                 canvas.drawRoundRect(left,mDrawTop,left+dotSize,mDrawBottom,radius,radius,mForegroundPaint)
             }
-            ScrollDirection.LEFT->{
+            ScrollDirection.LEFT ->{
                 val curLength=calculateIndicatorLengthByOffset()
                 val mCurOffset=mScrollOffset
                 if (mCurOffset<=0.5){
@@ -170,7 +180,7 @@ class PageIndicator(context: Context,attrs:AttributeSet?,defStyle:Int,defStyleRe
                     canvas.drawRoundRect(left,mDrawTop,right,mDrawBottom,radius,radius,mForegroundPaint)
                 }
             }
-            ScrollDirection.RIGHT->{
+            ScrollDirection.RIGHT ->{
                 val curLength=calculateIndicatorLengthByOffset()
                 val mCurOffset=mScrollOffset
                 if (mCurOffset<=0.5){
@@ -226,7 +236,7 @@ class PageIndicator(context: Context,attrs:AttributeSet?,defStyle:Int,defStyleRe
                 mScrollOffset= curValue
                 mOnScrollListener?.onScroll(mFromIndex,mToIndex,mScrollOffset)
                 if (curValue==1.0f){
-                    mScrollDirection=ScrollDirection.NONE
+                    mScrollDirection= ScrollDirection.NONE
                 }
             }
         }
@@ -235,7 +245,7 @@ class PageIndicator(context: Context,attrs:AttributeSet?,defStyle:Int,defStyleRe
     interface OnScrollListener{
         fun onScroll(from:Int,to:Int,offset:Float)
     }
-    fun setOnScrollListener(listener:OnScrollListener){
+    fun setOnScrollListener(listener: OnScrollListener){
         this.mOnScrollListener=listener
     }
     enum class ScrollDirection{

@@ -10,6 +10,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.HAndroidUILib">
         <activity
+            android:name=".buttons.ScrollableButtonActivity"
+            android:exported="true" />
+        <activity
+            android:name=".indicators.PageIndicatorActivity"
+            android:exported="true" />
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>

@@ -4,7 +4,9 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="../../../../layout/custom_preview.xml" value="0.34739583333333335" />
-        <entry key="..\:/Users/hvang/StudioProjects/HAndroidUILib/app/src/main/res/layout/activity_main.xml" value="0.25" />
+        <entry key="..\:/Users/hvang/StudioProjects/HAndroidUILib/app/src/main/res/layout/activity_main.xml" value="0.33" />
+        <entry key="..\:/Users/hvang/StudioProjects/HAndroidUILib/app/src/main/res/layout/activity_page_indicator.xml" value="0.22" />
+        <entry key="..\:/Users/hvang/StudioProjects/HAndroidUILib/app/src/main/res/layout/activity_scrollable_button.xml" value="0.22418478260869565" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.30416666666666664" />
         <entry key="app/src/main/res/layout/fragment_blank.xml" value="0.31927083333333334" />
       </map>
