@@ -7,12 +7,17 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
-import android.util.Log
 import android.view.View
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import cn.huangchengxi.uilib.utils.dp2px
 import kotlin.math.abs
 import kotlin.math.min
 
+/**
+ * @author HuangChengxi
+ * This view can be used as an indicator for a ViewPager or
+ * any view that can snap scroll.
+ */
 class PageIndicator(context: Context,attrs:AttributeSet?,defStyle:Int,defStyleRes:Int):View(context, attrs,defStyle,defStyleRes) {
     constructor(context: Context,attrs: AttributeSet?,defStyle: Int):this(context,attrs,defStyle,0);
     constructor(context: Context,attrs: AttributeSet?):this(context,attrs,0);
@@ -37,22 +42,42 @@ class PageIndicator(context: Context,attrs:AttributeSet?,defStyle:Int,defStyleRe
             field=value
             scrollFromTo(old,value)
         }
+
+    /**
+     * Background's color
+     */
     var backgroundDotColor:Int= Color.rgb(0,0,0)
         set(value) {
             field=value
         }
+
+    /**
+     * The color of the indicator bar
+     */
     var foregroundDotColor:Int=Color.rgb(0,0,0)
         set(value) {
             field=value
         }
+
+    /**
+     * Radius of indicator bar
+     */
     var radius:Float= dp2px(context,6.0f)
         set(value) {
             field=value
         }
+
+    /**
+     * Size of indicator background dot
+     */
     var dotSize:Float= dp2px(context,12.0f)
         set(value) {
             field=value
         }
+
+    /**
+     * Current scroll offset,ranging from 0.0f to 1.0f
+     */
     private var mScrollOffset:Float=0.0f
         set(value) {
             field=value
@@ -72,6 +97,10 @@ class PageIndicator(context: Context,attrs:AttributeSet?,defStyle:Int,defStyleRe
 
     private var mFromIndex=0
     private var mToIndex=0
+
+    /**
+     * Scroll state
+     */
     private var mScrollDirection=ScrollDirection.NONE
         get(){
             return if (mFromIndex==mToIndex) ScrollDirection.NONE
@@ -79,6 +108,7 @@ class PageIndicator(context: Context,attrs:AttributeSet?,defStyle:Int,defStyleRe
             else ScrollDirection.RIGHT
         }
     private var mScrollOffsetAnimator:Animator?=null
+    private var mOnScrollListener:OnScrollListener?=null
 
     init {
         val arr=context.obtainStyledAttributes(attrs,R.styleable.PageIndicator)
@@ -122,87 +152,81 @@ class PageIndicator(context: Context,attrs:AttributeSet?,defStyle:Int,defStyleRe
         }
     }
     private fun drawForegroundIndicator(canvas: Canvas){
-        Log.e("Draw","Foreground")
         when (mScrollDirection){
             ScrollDirection.NONE->{
-                val left=calculateLeftOffsetByPosition()
+                val left=calculateLeftOffsetByPosition(position)
                 canvas.drawRoundRect(left,mDrawTop,left+dotSize,mDrawBottom,radius,radius,mForegroundPaint)
             }
             ScrollDirection.LEFT->{
                 val curLength=calculateIndicatorLengthByOffset()
                 val mCurOffset=mScrollOffset
-                val right:Float
-                val left:Float
                 if (mCurOffset<=0.5){
-                    right=calculateRightOffsetByPosition()
-                    left=right-curLength
+                    val right=calculateRightOffsetByPosition(mFromIndex)
+                    val left=right-curLength
+                    canvas.drawRoundRect(left,mDrawTop,right,mDrawBottom,radius,radius,mForegroundPaint)
                 }else{
-                    left=calculateLeftOffsetByPosition()
-                    right=left+curLength
+                    val left=calculateLeftOffsetByPosition(mToIndex)
+                    val right=left+curLength
+                    canvas.drawRoundRect(left,mDrawTop,right,mDrawBottom,radius,radius,mForegroundPaint)
                 }
-                canvas.drawRoundRect(left,mDrawTop,right,mDrawBottom,radius,radius,mForegroundPaint)
             }
             ScrollDirection.RIGHT->{
                 val curLength=calculateIndicatorLengthByOffset()
                 val mCurOffset=mScrollOffset
-                val right:Float
-                val left:Float
                 if (mCurOffset<=0.5){
-                    left=calculateLeftOffsetByPosition()
-                    right=left+curLength
+                    val left=calculateLeftOffsetByPosition(mFromIndex)
+                    val right=left+curLength
+                    canvas.drawRoundRect(left,mDrawTop,right,mDrawBottom,radius,radius,mForegroundPaint)
                 }else{
-                    right=calculateRightOffsetByPosition()
-                    left=right-curLength
+                    val right=calculateRightOffsetByPosition(mToIndex)
+                    val left=right-curLength
+                    canvas.drawRoundRect(left,mDrawTop,right,mDrawBottom,radius,radius,mForegroundPaint)
                 }
-                canvas.drawRoundRect(left,mDrawTop,right,mDrawBottom,radius,radius,mForegroundPaint)
             }
         }
     }
-    private fun calculateLeftOffsetByPosition():Float{
+    private fun calculateLeftOffsetByPosition(position:Int):Float{
         return dotSize*(position*2)
     }
-    private fun calculateRightOffsetByPosition():Float{
+    private fun calculateRightOffsetByPosition(position:Int):Float{
         return dotSize*(position*2+1)
     }
-    private fun calculateIndicatorLengthByOffset():Float{
-        if (mScrollDirection==ScrollDirection.NONE) return dotSize
-        val from=mFromIndex
-        val to=mToIndex
-        val nodeCount= abs(from-to)+1
-        val offset= abs(checkValidateOffset())
+    private fun calculateIndicatorLengthByOffset(): Float {
+        if (mScrollDirection == ScrollDirection.NONE) return dotSize
+        val from = mFromIndex
+        val to = mToIndex
+        val nodeCount = abs(from - to) + 1
+        val offset = abs(checkValidateOffset())
         //max length
         //min length is zero
-        val ds=dotSize*(nodeCount*2-1)
-        val res=-6.0f*ds*offset*offset+6.0f*ds*offset
-        Log.e("Res","$res")
-        val len= when{
-            res<0->0.0f
-            res>ds->ds
-            else->res
+        val ds = dotSize * (nodeCount * 2 - 1)
+        val res = -6.0f * ds * offset * offset + 6.0f * ds * offset+dotSize
+        return when {
+            res < 0 -> 0.0f
+            res > ds -> ds
+            else -> res
         }
-        Log.e("len:","$len")
-        return len
     }
     private fun checkValidateOffset():Float{
         var offset=mScrollOffset
         if (offset<0) offset=0.0f
         else if (offset>1.0f) offset=1.0f
-        Log.e("Offset","$offset")
         return offset
     }
     private fun scrollFromTo(from:Int,to:Int){
         mFromIndex=from
         mToIndex=to
+        mScrollOffsetAnimator?.cancel()
         //start animation
         mScrollOffsetAnimator=ValueAnimator.ofFloat(0.0f,1.0f).apply {
-            duration=300
+            duration=350
+            interpolator=FastOutSlowInInterpolator()
             addUpdateListener {
                 val curValue= min(it.animatedValue as Float,1.0f)
                 mScrollOffset= curValue
+                mOnScrollListener?.onScroll(mFromIndex,mToIndex,mScrollOffset)
                 if (curValue==1.0f){
                     mScrollDirection=ScrollDirection.NONE
-                    mFromIndex=0
-                    mToIndex=0
                 }
             }
         }
@@ -211,7 +235,10 @@ class PageIndicator(context: Context,attrs:AttributeSet?,defStyle:Int,defStyleRe
     interface OnScrollListener{
         fun onScroll(from:Int,to:Int,offset:Float)
     }
-    private enum class ScrollDirection{
+    fun setOnScrollListener(listener:OnScrollListener){
+        this.mOnScrollListener=listener
+    }
+    enum class ScrollDirection{
         LEFT,
         RIGHT,
         NONE

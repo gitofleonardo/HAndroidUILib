@@ -2,6 +2,7 @@ package cn.huangchengxi.handroiduilib
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentPagerAdapter
@@ -41,7 +42,6 @@ class MainActivity : AppCompatActivity() {
                 positionOffset: Float,
                 positionOffsetPixels: Int
             ) {
-
             }
             override fun onPageSelected(position: Int) {
                 mBinding.indicator.position=position
