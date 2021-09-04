@@ -17,22 +17,28 @@
             android:layout_width="match_parent"
             android:layout_height="64dp"/>
         <cn.huangchengxi.uilib.buttons.OptionTextView
+            android:paddingLeft="5dp"
+            android:paddingRight="5dp"
             android:textColor="@color/white"
             android:text="DeleteDelete"
             android:background="#F44336"
-            android:layout_width="50dp"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"/>
         <cn.huangchengxi.uilib.buttons.OptionTextView
+            android:paddingLeft="5dp"
+            android:paddingRight="5dp"
             android:textColor="@color/white"
             android:text="Select"
             android:background="#2196F3"
-            android:layout_width="50dp"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"/>
         <cn.huangchengxi.uilib.buttons.OptionTextView
+            android:paddingLeft="5dp"
+            android:paddingRight="5dp"
             android:textColor="@color/white"
             android:text="Top"
             android:background="#FF9800"
-            android:layout_width="50dp"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"/>
     </cn.huangchengxi.uilib.buttons.ScrollableButton>
 </androidx.appcompat.widget.LinearLayoutCompat>
