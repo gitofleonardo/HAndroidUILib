@@ -57,9 +57,6 @@ class ScrollableButton(context: Context,attrs:AttributeSet?,defStyle:Int,defStyl
      * Content is clickable when true, else false
      */
     var contentClickableOnExpanded=false
-
-    private var mOnContentClickListener:OnContentClickListener?=null
-    private var mOnContentLongClickListener:OnContentLongClickListener?=null
     private var mOnExpandStateChangeListener:OnExpandStateChangeListener?=null
 
     init {
@@ -146,28 +143,6 @@ class ScrollableButton(context: Context,attrs:AttributeSet?,defStyle:Int,defStyl
     private fun measureContentParam(child: View){
         val param=ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.MATCH_PARENT)
         child.layoutParams=param
-        setupContentListener(child)
-    }
-    private fun setupContentListener(child: View){
-        child.setOnClickListener(object : OnClickListener{
-            override fun onClick(v: View) {
-                if ((expanded && contentClickableOnExpanded) || !expanded){
-                    mOnContentClickListener?.onClick(v)
-                }else{
-                    expanded=false
-                }
-            }
-        })
-        child.setOnLongClickListener(object : OnLongClickListener{
-            override fun onLongClick(v: View): Boolean {
-                if ((expanded && contentClickableOnExpanded) || !expanded){
-                    mOnContentLongClickListener?.onLongClick(v)
-                }else{
-                    expanded=false
-                }
-                return true
-            }
-        })
     }
     fun addOption(view:OptionTextView,onOptionClickListener:OnOptionClickListener){
         addOption(view,childCount,onOptionClickListener)
@@ -244,11 +219,17 @@ class ScrollableButton(context: Context,attrs:AttributeSet?,defStyle:Int,defStyl
             MotionEvent.ACTION_UP->{
                 if (!mFirstMove){
                     if (mOffset>=(mTotalWidth-measuredWidth)/2){
-                        setToExpanded(true)
+                        expanded=false
                     }else{
-                        setToExpanded(false)
+                        expanded=false
                     }
                     return mGestureDetector.onTouchEvent(event)
+                }else{
+                    if ((expanded && !contentClickableOnExpanded && isDownOnContent(event) ||
+                                (!isDownOnContent(event) && closeOnAction))){
+                        expanded=false
+                        return true
+                    }
                 }
                 return false
             }
@@ -272,11 +253,14 @@ class ScrollableButton(context: Context,attrs:AttributeSet?,defStyle:Int,defStyl
                 if (!mFirstMove) intercepted=true
             }
             MotionEvent.ACTION_UP->{
-                intercepted=!mFirstMove
+                intercepted=expanded && !contentClickableOnExpanded && isDownOnContent(ev)
                 onTouchEvent(ev)
             }
         }
         return intercepted
+    }
+    private fun isDownOnContent(event: MotionEvent):Boolean{
+        return width-mOffset>event.x
     }
 
     override fun onDown(p0: MotionEvent?): Boolean {
@@ -329,32 +313,10 @@ class ScrollableButton(context: Context,attrs:AttributeSet?,defStyle:Int,defStyl
         }
         return true
     }
-    fun setOnContentClickListener(listener: OnContentClickListener){
-        this.mOnContentClickListener=listener
-        setupContentListener(getChildAt(0))
-    }
-    fun setOnContentLongClickListener(listener: OnContentLongClickListener){
-        this.mOnContentLongClickListener=listener
-        setupContentListener(getChildAt(0))
-    }
-    fun setOnExpandedStateChange(listener: OnExpandStateChangeListener){
+    fun setOnExpandedStateChangeListener(listener: OnExpandStateChangeListener){
         this.mOnExpandStateChangeListener=listener
     }
-    fun setOnContentClickListener(listener:(View)->Unit){
-        this.mOnContentClickListener=object : OnContentClickListener{
-            override fun onClick(view: View) {
-                listener.invoke(view)
-            }
-        }
-    }
-    fun setOnContentLongClickListener(listener: (View) -> Unit){
-        this.mOnContentLongClickListener=object : OnContentLongClickListener{
-            override fun onLongClick(view: View) {
-                listener.invoke(view)
-            }
-        }
-    }
-    fun setOnExpandedStateChange(listener:(Boolean)->Unit){
+    fun setOnExpandedStateChangeListener(listener:(Boolean)->Unit){
         this.mOnExpandStateChangeListener=object : OnExpandStateChangeListener{
             override fun onChange(expanded: Boolean) {
                 listener.invoke(expanded)
@@ -364,12 +326,6 @@ class ScrollableButton(context: Context,attrs:AttributeSet?,defStyle:Int,defStyl
 
     interface OnOptionClickListener{
         fun onClick(view: OptionTextView)
-    }
-    interface OnContentClickListener{
-        fun onClick(view:View)
-    }
-    interface OnContentLongClickListener{
-        fun onLongClick(view: View)
     }
     interface OnExpandStateChangeListener{
         fun onChange(expanded: Boolean)
