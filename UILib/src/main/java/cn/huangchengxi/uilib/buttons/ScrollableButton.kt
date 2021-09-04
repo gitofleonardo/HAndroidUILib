@@ -3,6 +3,7 @@ package cn.huangchengxi.uilib.buttons
 import android.animation.ValueAnimator
 import android.content.Context
 import android.util.AttributeSet
+import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
@@ -18,7 +19,7 @@ import androidx.interpolator.view.animation.FastOutSlowInInterpolator
  */
 class ScrollableButton(context: Context,attrs:AttributeSet?,defStyle:Int,defStyleRes:Int) :
     LinearLayout(context, attrs,defStyle,defStyleRes),GestureDetector.OnGestureListener{
-    constructor(context: Context,attrs: AttributeSet?,defStyle: Int):this(context,attrs,defStyle,0);
+    constructor(context: Context,attrs: AttributeSet?,defStyle: Int):this(context,attrs,defStyle,0)
     constructor(context: Context,attrs: AttributeSet?):this(context,attrs,0)
     constructor(context: Context):this(context,null)
 
@@ -30,6 +31,7 @@ class ScrollableButton(context: Context,attrs:AttributeSet?,defStyle:Int,defStyl
             if (field!=value){
                 field=value
                 setToExpanded(value)
+                mOnExpandStateChangeListener?.onChange(value)
             }
         }
 
@@ -38,6 +40,7 @@ class ScrollableButton(context: Context,attrs:AttributeSet?,defStyle:Int,defStyl
      * ACTION_MOVE event.
      */
     private var mFirstMove=true
+    private var mIsVerticalDrag=false
     private val mGestureDetector by lazy { GestureDetector(context,this) }
     private var mLastTouchX=0.0f
     private var mLastTouchY=0.0f
@@ -57,6 +60,7 @@ class ScrollableButton(context: Context,attrs:AttributeSet?,defStyle:Int,defStyl
 
     private var mOnContentClickListener:OnContentClickListener?=null
     private var mOnContentLongClickListener:OnContentLongClickListener?=null
+    private var mOnExpandStateChangeListener:OnExpandStateChangeListener?=null
 
     init {
         orientation= HORIZONTAL
@@ -210,6 +214,7 @@ class ScrollableButton(context: Context,attrs:AttributeSet?,defStyle:Int,defStyl
         when(event?.action){
             MotionEvent.ACTION_DOWN->{
                 mFirstMove=true
+                mIsVerticalDrag=false
                 mLastTouchX=event.x
                 mLastTouchY=event.y
                 return mGestureDetector.onTouchEvent(event)
@@ -224,12 +229,14 @@ class ScrollableButton(context: Context,attrs:AttributeSet?,defStyle:Int,defStyl
                     return false
                 }
                 mFirstMove=false
+                //disallow intercept after moving horizontal
+                parent.requestDisallowInterceptTouchEvent(true)
                 if (curY==mLastTouchY){
                     return mGestureDetector.onTouchEvent(event)
                 }
                 val ang=(curX-mLastTouchX)/(curY-mLastTouchY)
                 return if (ang<=1){
-                    false
+                    return true
                 }else{
                     mGestureDetector.onTouchEvent(event)
                 }
@@ -261,7 +268,8 @@ class ScrollableButton(context: Context,attrs:AttributeSet?,defStyle:Int,defStyl
                 onTouchEvent(ev)
             }
             MotionEvent.ACTION_MOVE->{
-                intercepted = !(ev.x==mLastTouchX && ev.y==mLastTouchY)
+                intercepted = !(ev.x==mLastTouchX && ev.y==mLastTouchY) && !mIsVerticalDrag
+                if (!mFirstMove) intercepted=true
             }
             MotionEvent.ACTION_UP->{
                 intercepted=!mFirstMove
@@ -322,13 +330,38 @@ class ScrollableButton(context: Context,attrs:AttributeSet?,defStyle:Int,defStyl
         return true
     }
     fun setOnContentClickListener(listener: OnContentClickListener){
-        mOnContentClickListener=listener
+        this.mOnContentClickListener=listener
         setupContentListener(getChildAt(0))
     }
     fun setOnContentLongClickListener(listener: OnContentLongClickListener){
-        mOnContentLongClickListener=listener
+        this.mOnContentLongClickListener=listener
         setupContentListener(getChildAt(0))
     }
+    fun setOnExpandedStateChange(listener: OnExpandStateChangeListener){
+        this.mOnExpandStateChangeListener=listener
+    }
+    fun setOnContentClickListener(listener:(View)->Unit){
+        this.mOnContentClickListener=object : OnContentClickListener{
+            override fun onClick(view: View) {
+                listener.invoke(view)
+            }
+        }
+    }
+    fun setOnContentLongClickListener(listener: (View) -> Unit){
+        this.mOnContentLongClickListener=object : OnContentLongClickListener{
+            override fun onLongClick(view: View) {
+                listener.invoke(view)
+            }
+        }
+    }
+    fun setOnExpandedStateChange(listener:(Boolean)->Unit){
+        this.mOnExpandStateChangeListener=object : OnExpandStateChangeListener{
+            override fun onChange(expanded: Boolean) {
+                listener.invoke(expanded)
+            }
+        }
+    }
+
     interface OnOptionClickListener{
         fun onClick(view: OptionTextView)
     }
@@ -337,5 +370,8 @@ class ScrollableButton(context: Context,attrs:AttributeSet?,defStyle:Int,defStyl
     }
     interface OnContentLongClickListener{
         fun onLongClick(view: View)
+    }
+    interface OnExpandStateChangeListener{
+        fun onChange(expanded: Boolean)
     }
 }

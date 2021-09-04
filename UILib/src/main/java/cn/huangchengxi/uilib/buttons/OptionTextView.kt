@@ -12,7 +12,6 @@ class OptionTextView(context: Context,attrs:AttributeSet?,defStyle:Int):AppCompa
     constructor(context: Context):this(context,null)
 
     init {
-        //layoutParams= ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.MATCH_PARENT)
         gravity=Gravity.CENTER
     }
 }
