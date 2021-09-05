@@ -29,10 +29,10 @@ class ScrollableButton(context: Context,attrs:AttributeSet?,defStyle:Int,defStyl
     var expanded=false
         set(value) {
             if (field!=value){
-                field=value
-                setToExpanded(value)
                 mOnExpandStateChangeListener?.onChange(value)
             }
+            field=value
+            setToExpanded(value)
         }
 
     /**
@@ -217,12 +217,9 @@ class ScrollableButton(context: Context,attrs:AttributeSet?,defStyle:Int,defStyl
                 }
             }
             MotionEvent.ACTION_UP->{
+                Log.e("ACTION","ACTION_UP")
                 if (!mFirstMove){
-                    if (mOffset>=(mTotalWidth-measuredWidth)/2){
-                        expanded=false
-                    }else{
-                        expanded=false
-                    }
+                    expanded = mOffset>=(mTotalWidth-measuredWidth)/2
                     return mGestureDetector.onTouchEvent(event)
                 }else{
                     if ((expanded && !contentClickableOnExpanded && isDownOnContent(event) ||
