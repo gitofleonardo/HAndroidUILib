@@ -63,10 +63,7 @@ class ScrollableButton(context: Context,attrs:AttributeSet?,defStyle:Int,defStyl
         orientation= HORIZONTAL
         //Measure total available width
         viewTreeObserver.addOnGlobalLayoutListener {
-            mTotalWidth=0.0f
-            for (child in children){
-                mTotalWidth+=child.measuredWidth
-            }
+            ensureTotalWidth()
         }
     }
 
@@ -116,6 +113,15 @@ class ScrollableButton(context: Context,attrs:AttributeSet?,defStyle:Int,defStyl
         }
         super.addView(child,index,params)
     }
+    private fun ensureTotalWidth(){
+        mTotalWidth=0.0f
+        if (childCount!=0){
+            for (child in children){
+                mTotalWidth+=child.measuredWidth
+            }
+            Log.e("GlobalLayoutChange","${mTotalWidth}")
+        }
+    }
 
     /**
      * Measure the spec of child, set measure mode to EXACTLY instead of AT_MOST
@@ -125,7 +131,7 @@ class ScrollableButton(context: Context,attrs:AttributeSet?,defStyle:Int,defStyl
     private fun measureActionParam(child: View,params: ViewGroup.LayoutParams?){
         val param=ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.MATCH_PARENT)
         child.layoutParams=param
-        measure(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.MATCH_PARENT)
+        measure(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT)
         child.measure(measuredWidth,measuredHeight)
         val width=child.measuredWidth
         if (params!=null){
@@ -156,7 +162,7 @@ class ScrollableButton(context: Context,attrs:AttributeSet?,defStyle:Int,defStyl
             }
         }
         addView(view,index, ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.MATCH_PARENT))
-        requestLayout()
+        invalidate()
     }
 
     /**
@@ -216,8 +222,7 @@ class ScrollableButton(context: Context,attrs:AttributeSet?,defStyle:Int,defStyl
                     mGestureDetector.onTouchEvent(event)
                 }
             }
-            MotionEvent.ACTION_UP->{
-                Log.e("ACTION","ACTION_UP")
+            MotionEvent.ACTION_UP,MotionEvent.ACTION_CANCEL->{
                 if (!mFirstMove){
                     expanded = mOffset>=(mTotalWidth-measuredWidth)/2
                     return mGestureDetector.onTouchEvent(event)
@@ -246,10 +251,10 @@ class ScrollableButton(context: Context,attrs:AttributeSet?,defStyle:Int,defStyl
                 onTouchEvent(ev)
             }
             MotionEvent.ACTION_MOVE->{
-                intercepted = !(ev.x==mLastTouchX && ev.y==mLastTouchY) && !mIsVerticalDrag
+                intercepted = !mIsVerticalDrag
                 if (!mFirstMove) intercepted=true
             }
-            MotionEvent.ACTION_UP->{
+            MotionEvent.ACTION_UP,MotionEvent.ACTION_CANCEL->{
                 intercepted=expanded && !contentClickableOnExpanded && isDownOnContent(ev)
                 onTouchEvent(ev)
             }
@@ -278,6 +283,7 @@ class ScrollableButton(context: Context,attrs:AttributeSet?,defStyle:Int,defStyl
      * The offset is ranging from 0.0f to mTotalWidth-measureWidth
      */
     override fun onScroll(p0: MotionEvent?, p1: MotionEvent?, distanceX: Float, distanceY: Float): Boolean {
+        ensureTotalWidth()
         val availableScrollWidth=mTotalWidth-measuredWidth
         if ((mOffset>=availableScrollWidth && distanceX>=0) || (distanceX<=0 && mOffset<=0.0f)){
             return true
@@ -303,9 +309,9 @@ class ScrollableButton(context: Context,attrs:AttributeSet?,defStyle:Int,defStyl
      * velocity is faster then 30.
      */
     override fun onFling(p0: MotionEvent?, p1: MotionEvent?, velX: Float, velY: Float): Boolean {
-        if (velX>=30){
+        if (velX>=30 && expanded){
             expanded=false
-        }else if (velX<=-30){
+        }else if (velX<=-30 && !expanded){
             expanded=true
         }
         return true
