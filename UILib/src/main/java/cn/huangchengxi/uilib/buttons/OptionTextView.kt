@@ -51,11 +51,7 @@ class OptionTextView(context: Context,attrs:AttributeSet?,defStyle:Int):AppCompa
             mListener=listener
         }
         fun setOnClickListener(listener:(View)->Unit){
-            mListener=object : OnClickListener{
-                override fun onClick(p0: View) {
-                    listener.invoke(p0)
-                }
-            }
+            mListener= OnClickListener { p0 -> listener.invoke(p0) }
         }
         fun build():OptionTextView{
             return OptionTextView(context).apply {
