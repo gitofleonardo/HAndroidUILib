@@ -12,6 +12,7 @@ import androidx.viewpager.widget.ViewPager
 import cn.huangchengxi.handroiduilib.buttons.ScrollableButtonActivity
 import cn.huangchengxi.handroiduilib.databinding.ActivityMainBinding
 import cn.huangchengxi.handroiduilib.indicators.PageIndicatorActivity
+import cn.huangchengxi.handroiduilib.system.SystemBottomBarActivity
 import com.google.android.material.tabs.TabLayoutMediator
 
 class MainActivity : AppCompatActivity() {
@@ -26,6 +27,9 @@ class MainActivity : AppCompatActivity() {
             }
             indicatorBtn.setOnClickListener {
                 startActivity(Intent(this@MainActivity,PageIndicatorActivity::class.java))
+            }
+            bottomPullBar.setOnClickListener {
+                startActivity(Intent(this@MainActivity,SystemBottomBarActivity::class.java))
             }
         }
     }
