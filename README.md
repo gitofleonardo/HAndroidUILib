@@ -12,3 +12,10 @@
 
 ![scrollable_button](https://github.com/gitofleonardo/HAndroidUILib/blob/master/assets/scrollable_button.gif)
 
+### 底部棒棒
+
+![bottom_bar](https://github.com/gitofleonardo/HAndroidUILib/blob/master/assets/bottom_bar.gif)
+
+> 底部的棒棒是拿来用作系统的SystemUI的，一般应用应该用不着
+
+

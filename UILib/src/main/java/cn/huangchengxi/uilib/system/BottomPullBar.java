@@ -120,7 +120,7 @@ public class BottomPullBar extends LinearLayout implements GestureDetector.OnGes
     private ValueAnimator mBarRestoreAnimator;
     private final AccelerateDecelerateInterpolator mBarStatusInterpolator=new AccelerateDecelerateInterpolator();
     private int mBarOffset=0;
-    private BottomBarListener mBottomBarListener;
+    private AbstractBottomBarListener mAbstractBottomBarListener;
     /**
      * When gesture detector detects fling velocity which is faster than this value,
      * invoke pull to top.
@@ -130,6 +130,10 @@ public class BottomPullBar extends LinearLayout implements GestureDetector.OnGes
      * Indicates whether the bottom bar is expanded.
      */
     private volatile boolean isBottomBarExpanded=true;
+    /**
+     * One move, set this value to true and invoke onPulling
+     */
+    private boolean mStartPulling=false;
 
     public BottomPullBar(Context context) {
         this(context,null);
@@ -164,7 +168,7 @@ public class BottomPullBar extends LinearLayout implements GestureDetector.OnGes
         mBarView=new View(getContext());
         mBottomLineView=new View(getContext());
         mBarParams=new LayoutParams(getBarWidth(),mBarHeight);
-        mBottomLineParams=new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,1);
+        mBottomLineParams=new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,10);
         mBarParams.setMargins(0,0,0,mBarMarginBottom);
         mBarParams.gravity= Gravity.CENTER;
         mBarView.setLayoutParams(mBarParams);
@@ -187,6 +191,7 @@ public class BottomPullBar extends LinearLayout implements GestureDetector.OnGes
      */
     private void initThisLayout(){
         setOrientation(VERTICAL);
+        setGravity(Gravity.BOTTOM|Gravity.CENTER);
         ViewGroup.LayoutParams params=new ViewGroup.LayoutParams(getBarWidth(), ViewGroup.LayoutParams.WRAP_CONTENT);
         setLayoutParams(params);
         setBackground(new ColorDrawable(Color.TRANSPARENT));
@@ -216,6 +221,7 @@ public class BottomPullBar extends LinearLayout implements GestureDetector.OnGes
         return mWidthPolicy.getBarWidth(mDP.widthPixels);
     }
     private void scheduleBottomBarHideTimer(){
+        Log.v(TAG,"Schedule hide bar");
         if (mHideTimer!=null){
             mHideTimer.cancel();
         }
@@ -226,6 +232,13 @@ public class BottomPullBar extends LinearLayout implements GestureDetector.OnGes
                 mHandler.sendEmptyMessage(MSG_HIDE_BAR);
             }
         },DEFAULT_BAR_HIDE_WAIT_TIME);
+    }
+    private void cancelScheduledBottomHideTimer(){
+        Log.v(TAG,"Cancel hide bar");
+        if (mHideTimer!=null){
+            mHideTimer.cancel();
+            mHideTimer=null;
+        }
     }
     private void schedulePullTopLongTimer(){
         if (mPullTopLongCounter!=null){
@@ -246,42 +259,70 @@ public class BottomPullBar extends LinearLayout implements GestureDetector.OnGes
         if (mBarOffset==0){
             return;
         }
-        int duration=DEFAULT_BAR_RESTORE_MAX_DURATION*(mBarOffset/mMaxPullOffset);
+        int duration=(int) (DEFAULT_BAR_RESTORE_MAX_DURATION*((float)mBarOffset/mMaxPullOffset));
         mBarRestoreAnimator=ValueAnimator.ofInt(mBarOffset,0);
         mBarRestoreAnimator.setDuration(duration);
         mBarRestoreAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
-                int value=(int) animation.getAnimatedValue();
+                mBarOffset=(int) animation.getAnimatedValue();
                 LayoutParams params=(LayoutParams) mBarView.getLayoutParams();
-                params.setMargins(0,0,0,mBarMarginBottom+value);
+                params.setMargins(0,0,0,mBarMarginBottom+mBarOffset);
                 mBarView.setLayoutParams(params);
             }
         });
         mBarRestoreAnimator.start();
     }
-
+    private void expandContainer(){
+        int bottomLineHeight=mBottomLineView.getMeasuredHeight();
+        int bottomBarHeight=mBarView.getMeasuredHeight();
+        int bottomBarMargin=mBarMarginBottom;
+        int maxOffset=mMaxPullOffset;
+        ViewGroup.LayoutParams params=getLayoutParams();
+        params.height=bottomLineHeight+bottomBarHeight+bottomBarMargin+maxOffset;
+        setLayoutParams(params);
+    }
+    private void closeContainer(){
+        ViewGroup.LayoutParams params=getLayoutParams();
+        params.height= ViewGroup.LayoutParams.WRAP_CONTENT;
+        setLayoutParams(params);
+    }
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (event==null){
-            return super.onTouchEvent(event);
+            return mDetector.onTouchEvent(event);
         }
         int action=event.getAction();
+        int eventX=(int) event.getX();
+        int eventY=(int) event.getY();
         switch (action){
             case MotionEvent.ACTION_DOWN:
+                Log.v(TAG,"Action down");
                 //when touch down, expand the bar
+                expandContainer();
+                cancelScheduledBottomHideTimer();
                 mCallback.onExpandBar();
                 return mDetector.onTouchEvent(event);
             case MotionEvent.ACTION_MOVE:
+                Log.v(TAG,"Action move, [x,y]=["+eventX+","+eventY+"]");
+                if (!mStartPulling){
+                    mStartPulling=true;
+                    if (mAbstractBottomBarListener !=null){
+                        mAbstractBottomBarListener.onBarPulling();
+                    }
+                }
                 return mDetector.onTouchEvent(event);
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
+                Log.v(TAG,"Action up/cancel");
                 //schedule when released
+                closeContainer();
                 scheduleBottomBarHideTimer();
                 restoreBarToOrigin();
-                if (mBottomBarListener!=null){
-                    mBottomBarListener.onBarReleased();
+                if (mAbstractBottomBarListener !=null){
+                    mAbstractBottomBarListener.onBarReleased();
                 }
+                mStartPulling=false;
                 return mDetector.onTouchEvent(event);
             default:
                 return super.onTouchEvent(event);
@@ -302,14 +343,15 @@ public class BottomPullBar extends LinearLayout implements GestureDetector.OnGes
     @Override
     public boolean onSingleTapUp(MotionEvent e) {
         Log.v(TAG,"On single tap up");
-        if (mBottomBarListener!=null){
-            mBottomBarListener.onBarClick();
+        if (mAbstractBottomBarListener !=null){
+            mAbstractBottomBarListener.onBarClick();
         }
         return true;
     }
 
     @Override
     public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+        Log.v(TAG,"On Scrolling, distance y:"+distanceY);
         if (distanceY>=0 && mBarOffset>=mMaxPullOffset){
             return true;
         }
@@ -330,8 +372,8 @@ public class BottomPullBar extends LinearLayout implements GestureDetector.OnGes
         params.setMargins(0,0,0,mBarMarginBottom+mBarOffset);
         mBarView.setLayoutParams(params);
         if (mBarOffset>=mMaxPullOffset){
-            if (mBottomBarListener!=null){
-                mBottomBarListener.onBarPullTop();
+            if (mAbstractBottomBarListener !=null){
+                mAbstractBottomBarListener.onBarPullTop();
             }
             schedulePullTopLongTimer();
         }
@@ -341,16 +383,16 @@ public class BottomPullBar extends LinearLayout implements GestureDetector.OnGes
     @Override
     public void onLongPress(MotionEvent e) {
         Log.v(TAG,"On long press");
-        if (mBottomBarListener!=null){
-            mBottomBarListener.onBarLongPress();
+        if (mAbstractBottomBarListener !=null){
+            mAbstractBottomBarListener.onBarLongPress();
         }
     }
 
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
         if (velocityX>=mAllowFlingVelocity){
-            if (mBottomBarListener!=null){
-                mBottomBarListener.onBarPullTop();
+            if (mAbstractBottomBarListener !=null){
+                mAbstractBottomBarListener.onBarPullTop();
             }
             return true;
         }
@@ -388,14 +430,14 @@ public class BottomPullBar extends LinearLayout implements GestureDetector.OnGes
                 @Override
                 public void onAnimationStart(Animator animation) {
                     mBarView.setVisibility(View.VISIBLE);
-                    if (mBottomBarListener!=null){
-                        mBottomBarListener.onBarExpanding();
+                    if (mAbstractBottomBarListener !=null){
+                        mAbstractBottomBarListener.onBarExpanding();
                     }
                 }
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    if (mBottomBarListener!=null){
-                        mBottomBarListener.onBarExpanded();
+                    if (mAbstractBottomBarListener !=null){
+                        mAbstractBottomBarListener.onBarExpanded();
                     }
                     isBottomBarExpanded=true;
                 }
@@ -430,16 +472,16 @@ public class BottomPullBar extends LinearLayout implements GestureDetector.OnGes
             mBarStatusAnimator.addListener(new Animator.AnimatorListener() {
                 @Override
                 public void onAnimationStart(Animator animation) {
-                    if (mBottomBarListener!=null){
-                        mBottomBarListener.onBarHiding();
+                    if (mAbstractBottomBarListener !=null){
+                        mAbstractBottomBarListener.onBarHiding();
                     }
                 }
                 @Override
                 public void onAnimationEnd(Animator animation) {
                     mBarView.setVisibility(View.GONE);
                     isBottomBarExpanded=false;
-                    if (mBottomBarListener!=null){
-                        mBottomBarListener.onBarHidden();
+                    if (mAbstractBottomBarListener !=null){
+                        mAbstractBottomBarListener.onBarHidden();
                     }
                 }
                 @Override
@@ -451,8 +493,8 @@ public class BottomPullBar extends LinearLayout implements GestureDetector.OnGes
         }
         @Override
         public void onPullTopLong() {
-            if (mBottomBarListener!=null){
-                mBottomBarListener.onBarPullTopLong();
+            if (mAbstractBottomBarListener !=null){
+                mAbstractBottomBarListener.onBarPullTopLong();
             }
         }
     }
@@ -480,63 +522,66 @@ public class BottomPullBar extends LinearLayout implements GestureDetector.OnGes
     }
 
     /**
-     * Interface for monitoring bar status changes.
+     * Abstract class for monitoring bar status changes.
+     * Sometimes users don't want to implement all the method
+     * just because they don't need all of them, so we make this class
+     * an abstract class instead of an interface.
      */
-    public interface BottomBarListener{
+    public static abstract class AbstractBottomBarListener {
         /**
          * Invoked when bar is being pulled
          */
-        void onBarPulling();
+        public void onBarPulling(){}
 
         /**
          * Invoked when bar is pulled to top
          * May call more than once
          */
-        void onBarPullTop();
+        public void onBarPullTop(){}
 
         /**
          * Invoked when bar is long clicked
          */
-        void onBarLongPress();
+        public void onBarLongPress(){}
 
         /**
          * Invoked when bar is clicked
          */
-        void onBarClick();
+        public void onBarClick(){}
 
         /**
          * Invoked when bar is pulled to top for a certain period of time.
          */
-        void onBarPullTopLong();
+        public void onBarPullTopLong(){}
 
         /**
          * Invoked when bar is totally expanded.
          */
-        void onBarExpanded();
+        public void onBarExpanded(){}
 
         /**
          * Invoked when bar is totally hidden.
          */
-        void onBarHidden();
+        public void onBarHidden(){}
 
         /**
          * Invoked when bar is expanding.
          */
-        void onBarExpanding();
+        public void onBarExpanding(){}
 
         /**
          * Invoked when bar is hiding.
          */
-        void onBarHiding();
+        public void onBarHiding(){}
 
         /**
          * Invoked when bar is released from
          * being dragged.
          */
-        void onBarReleased();
+        public void onBarReleased(){}
     }
-    public void setOnBottomBarListener(BottomBarListener listener){
-        this.mBottomBarListener=listener;
+    public void setOnBottomBarListener(AbstractBottomBarListener listener){
+        this.mAbstractBottomBarListener =listener;
     }
 
     /**
