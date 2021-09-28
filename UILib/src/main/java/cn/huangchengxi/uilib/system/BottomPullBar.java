@@ -134,6 +134,15 @@ public class BottomPullBar extends LinearLayout implements GestureDetector.OnGes
      * One move, set this value to true and invoke onPulling
      */
     private boolean mStartPulling=false;
+    /**
+     * Whether the bottom bar has already reached the top.
+     */
+    private boolean mAlreadyTop=false;
+    /**
+     * Whether pull long has been called, since pull top and pull top long
+     * can only be called once totally
+     */
+    private boolean mLongPullTriggered=false;
 
     public BottomPullBar(Context context) {
         this(context,null);
@@ -252,6 +261,12 @@ public class BottomPullBar extends LinearLayout implements GestureDetector.OnGes
             }
         },DEFAULT_BAR_PULL_TOP_LONG_TIME);
     }
+    private void cancelScheduledPullTopLongTimer(){
+        if (mPullTopLongCounter!=null){
+            mPullTopLongCounter.cancel();
+            mPullTopLongCounter=null;
+        }
+    }
     private void restoreBarToOrigin(){
         if (mBarRestoreAnimator!=null){
             mBarRestoreAnimator.cancel();
@@ -299,6 +314,8 @@ public class BottomPullBar extends LinearLayout implements GestureDetector.OnGes
             case MotionEvent.ACTION_DOWN:
                 Log.v(TAG,"Action down");
                 //when touch down, expand the bar
+                mAlreadyTop=false;
+                mLongPullTriggered=false;
                 expandContainer();
                 cancelScheduledBottomHideTimer();
                 mCallback.onExpandBar();
@@ -319,8 +336,12 @@ public class BottomPullBar extends LinearLayout implements GestureDetector.OnGes
                 closeContainer();
                 scheduleBottomBarHideTimer();
                 restoreBarToOrigin();
+                cancelScheduledPullTopLongTimer();
                 if (mAbstractBottomBarListener !=null){
                     mAbstractBottomBarListener.onBarReleased();
+                }
+                if (mAlreadyTop && !mLongPullTriggered && mAbstractBottomBarListener!=null){
+                    mAbstractBottomBarListener.onBarPullTop();
                 }
                 mStartPulling=false;
                 return mDetector.onTouchEvent(event);
@@ -372,10 +393,15 @@ public class BottomPullBar extends LinearLayout implements GestureDetector.OnGes
         params.setMargins(0,0,0,mBarMarginBottom+mBarOffset);
         mBarView.setLayoutParams(params);
         if (mBarOffset>=mMaxPullOffset){
-            if (mAbstractBottomBarListener !=null){
+            mAlreadyTop=true;
+            schedulePullTopLongTimer();
+        }else{
+            if (mAlreadyTop && mAbstractBottomBarListener!=null){
                 mAbstractBottomBarListener.onBarPullTop();
             }
-            schedulePullTopLongTimer();
+            mAlreadyTop=false;
+            mLongPullTriggered=false;
+            cancelScheduledPullTopLongTimer();
         }
         return true;
     }
@@ -390,13 +416,13 @@ public class BottomPullBar extends LinearLayout implements GestureDetector.OnGes
 
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-        if (velocityX>=mAllowFlingVelocity){
+/*        if (velocityX>=mAllowFlingVelocity){
             if (mAbstractBottomBarListener !=null){
                 mAbstractBottomBarListener.onBarPullTop();
             }
             return true;
-        }
-        return false;
+        }*/
+        return true;
     }
 
     private int dp2px(int dpVal){
@@ -493,6 +519,7 @@ public class BottomPullBar extends LinearLayout implements GestureDetector.OnGes
         }
         @Override
         public void onPullTopLong() {
+            mLongPullTriggered=true;
             if (mAbstractBottomBarListener !=null){
                 mAbstractBottomBarListener.onBarPullTopLong();
             }
