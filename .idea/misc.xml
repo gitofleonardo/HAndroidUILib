@@ -8,6 +8,7 @@
         <entry key="UILib/src/main/res/drawable/bg_bottom_pull_bar.xml" value="0.30925925925925923" />
         <entry key="app/src/main/res/drawable/ic_left.xml" value="0.10185185185185185" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.25" />
+        <entry key="app/src/main/res/layout/activity_over_scroll.xml" value="0.25" />
         <entry key="app/src/main/res/layout/activity_scrollable_button.xml" value="0.31927083333333334" />
         <entry key="app/src/main/res/layout/activity_system_bottom_bar.xml" value="0.37604166666666666" />
         <entry key="app/src/main/res/layout/fragment_blank.xml" value="0.31927083333333334" />

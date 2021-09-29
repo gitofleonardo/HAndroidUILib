@@ -10,6 +10,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.HAndroidUILib">
         <activity
+            android:name=".container.OverScrollActivity"
+            android:exported="true" />
+        <activity
             android:name=".system.SystemBottomBarActivity"
             android:exported="true" />
         <activity

@@ -3,17 +3,11 @@ package cn.huangchengxi.handroiduilib
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
-import android.view.View
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentPagerAdapter
-import androidx.viewpager.widget.PagerAdapter
-import androidx.viewpager.widget.ViewPager
 import cn.huangchengxi.handroiduilib.buttons.ScrollableButtonActivity
+import cn.huangchengxi.handroiduilib.container.OverScrollActivity
 import cn.huangchengxi.handroiduilib.databinding.ActivityMainBinding
 import cn.huangchengxi.handroiduilib.indicators.PageIndicatorActivity
 import cn.huangchengxi.handroiduilib.system.SystemBottomBarActivity
-import com.google.android.material.tabs.TabLayoutMediator
 
 class MainActivity : AppCompatActivity() {
     private val mBinding by lazy { ActivityMainBinding.inflate(layoutInflater) }
@@ -30,6 +24,9 @@ class MainActivity : AppCompatActivity() {
             }
             bottomPullBar.setOnClickListener {
                 startActivity(Intent(this@MainActivity,SystemBottomBarActivity::class.java))
+            }
+            overScrollView.setOnClickListener {
+                startActivity(Intent(this@MainActivity,OverScrollActivity::class.java))
             }
         }
     }
