@@ -3,4 +3,6 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="hello_overscrollview">Hello OverScrollView</string>
+    <string name="refresh_header">RefreshHeader</string>
+    <string name="refresh_footer">RefreshFooter</string>
 </resources>

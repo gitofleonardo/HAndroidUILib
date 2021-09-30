@@ -26,4 +26,9 @@
         android:id="@+id/overScrollView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
+    <Button
+        android:text="Nested_Scroll"
+        android:id="@+id/nestedView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
 </LinearLayout>

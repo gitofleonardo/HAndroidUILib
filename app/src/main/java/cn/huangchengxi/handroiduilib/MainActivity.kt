@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import cn.huangchengxi.handroiduilib.buttons.ScrollableButtonActivity
+import cn.huangchengxi.handroiduilib.container.NestedScrollActivity
 import cn.huangchengxi.handroiduilib.container.OverScrollActivity
 import cn.huangchengxi.handroiduilib.databinding.ActivityMainBinding
 import cn.huangchengxi.handroiduilib.indicators.PageIndicatorActivity
@@ -27,6 +28,9 @@ class MainActivity : AppCompatActivity() {
             }
             overScrollView.setOnClickListener {
                 startActivity(Intent(this@MainActivity,OverScrollActivity::class.java))
+            }
+            nestedView.setOnClickListener {
+                startActivity(Intent(this@MainActivity,NestedScrollActivity::class.java))
             }
         }
     }
