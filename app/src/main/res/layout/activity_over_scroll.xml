@@ -6,6 +6,8 @@
     android:layout_height="match_parent"
     tools:context=".container.OverScrollActivity">
     <cn.huangchengxi.uilib.container.overscroll.OverScrollView
+        app:direction="vertical"
+        app:layout_constraintTop_toTopOf="parent"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
         <LinearLayout
@@ -13,76 +15,89 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
             <TextView
+                android:padding="50dp"
                 android:gravity="center"
                 android:text="@string/hello_overscrollview"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"/>
+                android:layout_height="wrap_content"/>
             <TextView
+                android:padding="50dp"
                 android:gravity="center"
                 android:text="@string/hello_overscrollview"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"/>
+                android:layout_height="wrap_content"/>
             <TextView
+                android:padding="50dp"
                 android:gravity="center"
                 android:text="@string/hello_overscrollview"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"/>
+                android:layout_height="wrap_content"/>
             <TextView
+                android:padding="50dp"
                 android:gravity="center"
                 android:text="@string/hello_overscrollview"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"/>
+                android:layout_height="wrap_content"/>
             <TextView
+                android:padding="50dp"
                 android:gravity="center"
                 android:text="@string/hello_overscrollview"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"/>
+                android:layout_height="wrap_content"/>
             <TextView
+                android:padding="50dp"
                 android:gravity="center"
                 android:text="@string/hello_overscrollview"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"/>
+                android:layout_height="wrap_content"/>
             <TextView
+                android:padding="50dp"
                 android:gravity="center"
                 android:text="@string/hello_overscrollview"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"/>
+                android:layout_height="wrap_content"/>
             <TextView
+                android:padding="50dp"
                 android:gravity="center"
                 android:text="@string/hello_overscrollview"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"/>
+                android:layout_height="wrap_content"/>
             <TextView
+                android:padding="50dp"
                 android:gravity="center"
                 android:text="@string/hello_overscrollview"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"/>
+                android:layout_height="wrap_content"/>
             <TextView
+                android:padding="50dp"
                 android:gravity="center"
                 android:text="@string/hello_overscrollview"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"/>
+                android:layout_height="wrap_content"/>
             <TextView
+                android:padding="50dp"
                 android:gravity="center"
                 android:text="@string/hello_overscrollview"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"/>
+                android:layout_height="wrap_content"/>
             <TextView
+                android:padding="50dp"
                 android:gravity="center"
                 android:text="@string/hello_overscrollview"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"/>
+                android:layout_height="wrap_content"/>
             <TextView
+                android:padding="50dp"
                 android:gravity="center"
                 android:text="@string/hello_overscrollview"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"/>
+                android:layout_height="wrap_content"/>
             <TextView
+                android:padding="50dp"
                 android:gravity="center"
                 android:text="@string/hello_overscrollview"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"/>
-
+                android:layout_height="wrap_content"/>
         </LinearLayout>
     </cn.huangchengxi.uilib.container.overscroll.OverScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>
